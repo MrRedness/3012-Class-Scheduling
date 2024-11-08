@@ -1,9 +1,4 @@
-
 class Graph:
-
-    """
-    Graph class with adjacency list and adding built in for convenience!
-    """
 
     def __init__(self):
         self.adjLst = dict()
@@ -21,7 +16,3 @@ class Graph:
 
         self.adjLst[n1][n2] = True
         self.adjLst[n2][n1] = True
-
-    def get_neighbors(self, node):
-        return [k for k in self.adjLst[node].keys() if self.adjLst[node][k]]
-
