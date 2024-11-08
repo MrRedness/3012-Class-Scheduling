@@ -14,7 +14,7 @@ def getRandom(csv_filename, num):
 def genStudents():
     try:
         num_students = int(input("Enter the number of students: "))
-        names = getRandom("Names.csv", num_students)
+        names = getRandom("Inputs/Names.csv", num_students)
         print(names)
     except ValueError:
         print("Not enough student names available!")
@@ -22,7 +22,7 @@ def genStudents():
 
     try:
         num_courses = int(input("Enter the number of courses: "))
-        all_courses = getRandom("Courses.csv", num_courses)
+        all_courses = getRandom("Inputs/Courses.csv", num_courses)
         print(all_courses)
     except ValueError:
         print("Not enough course names available!")
@@ -46,7 +46,7 @@ def genStudents():
     return students, all_courses  # Return the list of courses as well for reference
 
 def exportStudentsToCsv(students, all_courses):
-    filename = input("Enter the filename to save to: ")
+    filename = "Generated/" + input("Enter the filename to save to: ")
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         
