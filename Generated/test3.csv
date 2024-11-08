@@ -1,0 +1,16 @@
+Name,CS101,CHEM201,ARTH101,ASTR101,BIO301,CJ101,COMM101,ENVS101,ETHICS101,CALC101
+Al,False,False,True,False,False,True,False,True,True,True
+Veronica,False,True,True,False,False,False,False,True,True,True
+Craig,True,False,False,True,True,True,False,False,False,True
+Sierra,True,True,False,True,False,False,True,True,False,False
+Sonia,False,True,True,False,False,False,True,False,True,True
+Lora,True,False,True,True,True,False,False,False,False,True
+Olivia,False,True,False,True,True,False,True,False,True,False
+Shelley,False,True,True,False,True,True,False,True,False,False
+Clay,False,False,True,True,True,False,True,False,False,True
+Anna,False,True,False,True,True,True,True,False,False,False
+Devin,True,True,True,False,False,False,False,True,False,True
+Alex,True,True,False,False,True,False,True,True,False,False
+Laura,True,True,True,True,False,False,True,False,False,False
+Raul,True,False,False,False,False,True,False,True,True,True
+Antonio,False,True,False,True,False,True,False,True,True,False
