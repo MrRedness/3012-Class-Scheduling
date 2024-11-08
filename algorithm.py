@@ -53,15 +53,14 @@ def first_fit_adaptive(students, max_periods):
                 if color not in neighbor_colors:
                     coloring[node] = color
                     break
+        
+        if coloring[node] == -1:
+            # STILL NEED TO HANDLE THE NODE HERE THROUGH DUPLICATES AND EDGE CONNECTIONS!
+            # pick minimum frequency neighbor color (color for which lowest amount of neighbors)
+            # color node in color of neighbor 
+            # while those neighbors exist, erase connection between node and neighbor, create a duplicate
+            pass
 
-        handle_vertex_duplication()
-
-    def handle_vertex_duplication():
-        for node in graph.nodeSet:
-            if coloring[node] == -1:
-                new_node = f"{node}_duplicate"
-                graph.add_edge(new_node, node)
-                first_fit_coloring()
 
     first_fit_coloring()
 
