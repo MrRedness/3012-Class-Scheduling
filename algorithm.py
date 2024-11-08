@@ -1,4 +1,31 @@
 from graph import Graph
+import csv
+
+def csv_to_lst_of_lsts(filename):
+    
+    with open(filename, "r") as f:
+        csv_data = f.read()
+
+    reader = csv.reader(csv_data.strip().split('\n'))
+    header = next(reader)
+
+    # Step 2: Extract course names from the header (excluding Name and Course Bitmap)
+    course_names = header[2:]
+
+    # Step 3: Process each row to create the list of classes each student is enrolled in
+    students_classes = []
+
+    for row in reader:
+        course_bitmap = row[1]  # The bitmap of courses
+        enrolled_courses = []
+        
+        for i, bit in enumerate(course_bitmap):
+            if bit == '1':  # If the bit is 1, the student is enrolled in the course
+                enrolled_courses.append(course_names[i])
+        
+        students_classes.append(enrolled_courses)
+
+    return students_classes
 
 def first_fit_adaptive(students, max_periods):
     """
@@ -40,3 +67,5 @@ def first_fit_adaptive(students, max_periods):
 
     return coloring
 
+students = csv_to_lst_of_lsts("Generated\\test2.csv")
+print(first_fit_adaptive(students, 7))
