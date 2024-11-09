@@ -1,5 +1,6 @@
 from graph import Graph
 import csv
+from collections import Counter
 
 def csv_to_lst_of_lsts(filename):
     
@@ -46,25 +47,42 @@ def first_fit_adaptive(students, max_periods):
     coloring = dict([(className, -1) for className in graph.nodeSet])
 
     def first_fit_coloring():
-        for node in graph.nodeSet:
-            neighbor_colors = {coloring[neighbor] for neighbor in graph.get_neighbors(node) if coloring[neighbor] != -1}
+        iterNodeSet = list(graph.nodeSet)
+        for node in iterNodeSet:
+            neighbor_colors = [coloring[neighbor] for neighbor in graph.get_neighbors(node) if coloring[neighbor] != -1]
 
-            for color in range(max_periods):
-                if color not in neighbor_colors:
-                    coloring[node] = color
-                    break
-        
-        if coloring[node] == -1:
-            # STILL NEED TO HANDLE THE NODE HERE THROUGH DUPLICATES AND EDGE CONNECTIONS!
-            # pick minimum frequency neighbor color (color for which lowest amount of neighbors)
-            # color node in color of neighbor 
-            # while those neighbors exist, erase connection between node and neighbor, create a duplicate
-            pass
+            frequencyMap = dict([(x, 0) for x in range(-1, max_periods)])
 
+            # Count frequencies
+            for item in neighbor_colors:
+                frequencyMap[item] += 1
+
+            lowestColor = 0
+            secondLowest = 0
+            for key, val in frequencyMap.items():
+                if key == -1:
+                    continue
+                if frequencyMap[lowestColor] > val:
+                    lowestColor = key
+                elif frequencyMap[secondLowest] > val:
+                    secondLowest = key
+
+            if lowestColor != -1:
+                coloring[node] = lowestColor
+                if frequencyMap[lowestColor] >= 0:
+                    duplicate = node + "_dup"
+                    graph.add_node(duplicate)
+                    for neighbor in graph.get_neighbors(node):
+                        if coloring[neighbor] == lowestColor:
+                            graph.remove_edge(node, neighbor)
+                            graph.add_edge(duplicate, neighbor)
+                    coloring[duplicate] = secondLowest
+                    # TODO HOW TO ASSIGN THE COLOR OF THE DUPLICATE!
 
     first_fit_coloring()
 
     return coloring
 
-students = csv_to_lst_of_lsts("Generated\\test2.csv")
-print(first_fit_adaptive(students, 7))
+if __name__ == "__main__":
+    students = csv_to_lst_of_lsts("Generated\\test2.csv")
+    print(first_fit_adaptive(students, 7))
