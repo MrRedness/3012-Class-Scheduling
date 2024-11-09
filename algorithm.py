@@ -75,7 +75,7 @@ def apply_coloring_to_students(students, coloring):
     pass
 
 if __name__ == "__main__":
-    students = csv_to_lst_of_lsts("Generated\\testBig.csv")
+    students = csv_to_lst_of_lsts("Generated\\testSmall.csv")
     # print(students)
     graph, coloring = first_fit_adaptive(students, len(students[0]))
     print(coloring)
