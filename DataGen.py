@@ -61,7 +61,27 @@ def exportStudentsToCsv(students, all_courses):
     
     print(f"Data has been saved to {filename}")
 
-# Generate students and export to CSV
-students, all_courses = genStudents()
-if students:  # Only if students were successfully generated
-    exportStudentsToCsv(students, all_courses)
+def csv_to_lst_of_lsts(filename):
+
+    with open(filename, "r") as f:
+        csv_data = f.read()
+
+    rows = csv_data.strip().splitlines()
+    reader = csv.reader(rows)
+
+    # Extract headers (class names)
+    headers = next(reader)[1:]
+
+    # Convert each row to a list of classes the student is taking
+    student_classes = []
+    for row in reader:
+        classes = [headers[i] for i, val in enumerate(row[1:]) if val == "True"]
+        student_classes.append(classes)
+
+    return student_classes
+
+if __name__ == "__main__":
+    # Generate students and export to CSV
+    students, all_courses = genStudents()
+    if students:  # Only if students were successfully generated
+        exportStudentsToCsv(students, all_courses)

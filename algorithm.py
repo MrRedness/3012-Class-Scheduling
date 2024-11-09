@@ -1,32 +1,5 @@
 from graph import Graph
-import csv
-from collections import Counter
-
-def csv_to_lst_of_lsts(filename):
-    
-    with open(filename, "r") as f:
-        csv_data = f.read()
-
-    reader = csv.reader(csv_data.strip().split('\n'))
-    header = next(reader)
-
-    # Step 2: Extract course names from the header (excluding Name and Course Bitmap)
-    course_names = header[2:]
-
-    # Step 3: Process each row to create the list of classes each student is enrolled in
-    students_classes = []
-
-    for row in reader:
-        course_bitmap = row[1]  # The bitmap of courses
-        enrolled_courses = []
-        
-        for i, bit in enumerate(course_bitmap):
-            if bit == '1':  # If the bit is 1, the student is enrolled in the course
-                enrolled_courses.append(course_names[i])
-        
-        students_classes.append(enrolled_courses)
-
-    return students_classes
+from dataGen import csv_to_lst_of_lsts
 
 def first_fit_adaptive(students, max_periods):
     """
@@ -48,7 +21,11 @@ def first_fit_adaptive(students, max_periods):
 
     def first_fit_coloring():
         iterNodeSet = list(graph.nodeSet)
+        dupsCreated = False
         for node in iterNodeSet:
+            if coloring[node] != -1:
+                continue
+
             neighbor_colors = [coloring[neighbor] for neighbor in graph.get_neighbors(node) if coloring[neighbor] != -1]
 
             frequencyMap = dict([(x, 0) for x in range(-1, max_periods)])
@@ -57,6 +34,10 @@ def first_fit_adaptive(students, max_periods):
             for item in neighbor_colors:
                 frequencyMap[item] += 1
 
+            # TODO WOO FINISHED INITIAL ALGORITHM
+            # Can we add a thing here that doesn't automatically assign first period
+            # to the duplicate colors, but instead assigns a combination of the best
+            # color for the job that also happens to be the fewest already alloted?
             lowestColor = 0
             secondLowest = 0
             for key, val in frequencyMap.items():
@@ -71,18 +52,32 @@ def first_fit_adaptive(students, max_periods):
                 coloring[node] = lowestColor
                 if frequencyMap[lowestColor] >= 0:
                     duplicate = node + "_dup"
-                    graph.add_node(duplicate)
                     for neighbor in graph.get_neighbors(node):
                         if coloring[neighbor] == lowestColor:
                             graph.remove_edge(node, neighbor)
                             graph.add_edge(duplicate, neighbor)
-                    coloring[duplicate] = secondLowest
-                    # TODO HOW TO ASSIGN THE COLOR OF THE DUPLICATE!
+
+                    coloring[duplicate] = -1
+                    dupsCreated = True
+
+        if dupsCreated:
+            first_fit_coloring()
 
     first_fit_coloring()
 
-    return coloring
+    return graph, coloring
+
+def apply_coloring_to_students(students, coloring):
+    # TODO NEED THIS DONE!
+    # Just a helper function that assigns each student to each coloring and returns
+    # maybe a CSV with a reordered class size for each student? Also need to
+    # interpret duplicates for this!
+    pass
 
 if __name__ == "__main__":
-    students = csv_to_lst_of_lsts("Generated\\test2.csv")
-    print(first_fit_adaptive(students, 7))
+    students = csv_to_lst_of_lsts("Generated\\testBig.csv")
+    # print(students)
+    graph, coloring = first_fit_adaptive(students, len(students[0]))
+    print(coloring)
+    print(graph.adjLst)
+    Graph.visualize(graph, coloring)
