@@ -34,7 +34,7 @@ def first_fit_adaptive(students, max_periods):
             for item in neighbor_colors:
                 frequencyMap[item] += 1
 
-            # TODO WOO FINISHED INITIAL ALGORITHM
+            # TODO initial algorithm done?
             # Can we add a thing here that doesn't automatically assign first period
             # to the duplicate colors, but instead assigns a combination of the best
             # color for the job that also happens to be the fewest already alloted?
@@ -56,6 +56,7 @@ def first_fit_adaptive(students, max_periods):
                         if coloring[neighbor] == lowestColor:
                             graph.remove_edge(node, neighbor)
                             graph.add_edge(duplicate, neighbor)
+                            # TODO do we need to add more connective edges here than just the lowest color?
 
                     coloring[duplicate] = -1
                     dupsCreated = True
