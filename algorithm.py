@@ -1,5 +1,5 @@
 from graph import Graph
-from dataGen import csv_to_lst_of_lsts
+from data_gen import csv_to_lst_of_lsts
 
 def first_fit_adaptive(students, max_periods):
     """

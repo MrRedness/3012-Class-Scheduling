@@ -6,15 +6,15 @@ class Student:
         self.name = name
         self.course_enrollment = course_enrollment  # Boolean array for courses
 
-def getRandom(csv_filename, num):
+def get_random(csv_filename, num):
     with open(csv_filename, mode='r') as file:
         names = next(csv.reader(file))
     return random.sample(names, num)
 
-def genStudents():
+def gen_students():
     try:
         num_students = int(input("Enter the number of students: "))
-        names = getRandom("Inputs/Names.csv", num_students)
+        names = get_random("Inputs/Names.csv", num_students)
         print(names)
     except ValueError:
         print("Not enough student names available!")
@@ -22,7 +22,7 @@ def genStudents():
 
     try:
         num_courses = int(input("Enter the number of courses: "))
-        all_courses = getRandom("Inputs/Courses.csv", num_courses)
+        all_courses = get_random("Inputs/Courses.csv", num_courses)
         print(all_courses)
     except ValueError:
         print("Not enough course names available!")
@@ -45,7 +45,7 @@ def genStudents():
     
     return students, all_courses  # Return the list of courses as well for reference
 
-def exportStudentsToCsv(students, all_courses):
+def export_students_to_csv(students, all_courses):
     filename = "Generated/" + input("Enter the filename to save to: ")
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -82,6 +82,6 @@ def csv_to_lst_of_lsts(filename):
 
 if __name__ == "__main__":
     # Generate students and export to CSV
-    students, all_courses = genStudents()
+    students, all_courses = gen_students()
     if students:  # Only if students were successfully generated
-        exportStudentsToCsv(students, all_courses)
+        export_students_to_csv(students, all_courses)
