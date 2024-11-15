@@ -1,18 +1,23 @@
 from graph import Graph
-from data_gen import csv_to_lst_of_lsts
+from data_gen import csv_to_classes_dict, csv_to_student_dict
 
-def first_fit_adaptive(students, max_periods):
+DEBUG_MODE = False
+
+
+def first_fit_adaptive(student_classes):
     """
     Applies first-fit-coloring to a group of students to identify the schedules for each student.
-    
-    students is a list of lists --> each list represents a set of X classes that given student
+
+    student_classes is a list of lists --> each list represents a set of X classes that given student
     wants to take.
-    max_periods is the maximum number of periods available for scheduling.
     """
 
     graph = Graph()
 
-    for student in students:
+    max_periods = len(student_classes[0])
+    print(f"Max num of periods: {max_periods}")
+
+    for student in student_classes:
         for i in range(len(student)):
             for j in range(i + 1, len(student)):
                 graph.add_edge(student[i], student[j])
@@ -26,7 +31,8 @@ def first_fit_adaptive(students, max_periods):
             if coloring[node] != -1:
                 continue
 
-            neighbor_colors = [coloring[neighbor] for neighbor in graph.get_neighbors(node) if coloring[neighbor] != -1]
+            neighbor_colors = [coloring[neighbor] for neighbor in graph.get_neighbors(
+                node) if coloring[neighbor] != -1]
 
             frequencyMap = dict([(x, 0) for x in range(-1, max_periods)])
 
@@ -43,42 +49,113 @@ def first_fit_adaptive(students, max_periods):
             for key, val in frequencyMap.items():
                 if key == -1:
                     continue
+                # lowestColor is set to the color with the minumum frequency
                 if frequencyMap[lowestColor] > val:
                     lowestColor = key
+                # secondLowest is set to the color with the second minium frequency
                 elif frequencyMap[secondLowest] > val:
                     secondLowest = key
 
             if lowestColor != -1:
+                if (DEBUG_MODE):
+                    print(f"Coloring node {node} with color {lowestColor}")
+                    print(
+                        f"Frequency of lowest color {lowestColor} is {frequencyMap[lowestColor]}")
                 coloring[node] = lowestColor
-                if frequencyMap[lowestColor] >= 0:
+                if frequencyMap[lowestColor] > 0:
+                    if (DEBUG_MODE):
+                        print(f"Creating dupe for {node}")
                     duplicate = node + "_dup"
+
                     for neighbor in graph.get_neighbors(node):
                         if coloring[neighbor] == lowestColor:
                             graph.remove_edge(node, neighbor)
                             graph.add_edge(duplicate, neighbor)
+
+                            for class_list in student_classes:
+                                if (class_list.count(node) > 0 and class_list.count(neighbor) > 0):
+                                    class_list.remove(node)
+                                    class_list.append(duplicate)
+
                             # TODO do we need to add more connective edges here than just the lowest color?
 
                     coloring[duplicate] = -1
                     dupsCreated = True
+            if (DEBUG_MODE):
+                Graph.visualize(graph, coloring)
 
         if dupsCreated:
+            if (DEBUG_MODE):
+                print("Recurse Recurse")
             first_fit_coloring()
 
     first_fit_coloring()
 
     return graph, coloring
 
-def apply_coloring_to_students(students, coloring):
-    # TODO NEED THIS DONE!
-    # Just a helper function that assigns each student to each coloring and returns
-    # maybe a CSV with a reordered class size for each student? Also need to
-    # interpret duplicates for this!
-    pass
+# Just a helper function that assigns each student to each coloring and returns
+# maybe a CSV with a reordered class size for each student? Also need to
+# interpret duplicates for this!
+# def apply_coloring_to_students(students, coloring):
+#     # TODO NEED THIS DONE!
+#     print(students)
+#     print(coloring)
+#     students
+#     pass
+
+# def create_node_dict(student_dict):
+#     node_dict = dict()
+#     for class_list in student_dict.values():
+#         for class_name in class_list:
+#             node_dict[class_name] = []
+
+#     for student, class_list in student_dict.items():
+#         for class_name in class_list:
+#             node_dict[class_name].append(student)
+
+
+#     return node_dict
+
+# Reorders the list of classes to match the coloring 
+
+from time import sleep
+def reorder_student_list(student_classes, coloring):
+    for class_list in student_classes:
+        print(class_list)
+        copy = class_list.copy()
+        class_list = ["" for _ in class_list]
+        for colored_class, color in coloring.items():
+            # print(f"Colored class {colored_class} with color {color}")
+            if copy.count(colored_class) > 0:
+                # print("Found in copy")
+                if (class_list[color] != ""):
+                    print(f"ERROR! Class {colored_class} has color {color} but class_list already has that color used by {class_list[color]}")
+                    # sleep(5)
+                class_list[color] = colored_class
+            
+        print(class_list)
+        # sleep(2)
+        print("\n\n")
 
 if __name__ == "__main__":
-    students = csv_to_lst_of_lsts("Generated\\testSmall.csv")
-    # print(students)
-    graph, coloring = first_fit_adaptive(students, len(students[0]))
+    student_dict = csv_to_student_dict("Generated\\testSmall.csv")
+
+    print(student_dict)
+    
+    student_classes = list(student_dict.values())
+
+
+    graph, coloring = first_fit_adaptive(student_classes)
+
+    print("\n\n")
+
     print(coloring)
-    print(graph.adjLst)
+        # print(graph.adjLst)
     Graph.visualize(graph, coloring)
+
+    print("\n\n")
+
+    reorder_student_list(student_classes, coloring)
+
+    print(student_dict)
+

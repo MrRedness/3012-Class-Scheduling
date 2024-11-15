@@ -61,8 +61,7 @@ def export_students_to_csv(students, all_courses):
     
     print(f"Data has been saved to {filename}")
 
-def csv_to_lst_of_lsts(filename):
-
+def csv_to_student_dict(filename):
     with open(filename, "r") as f:
         csv_data = f.read()
 
@@ -73,12 +72,36 @@ def csv_to_lst_of_lsts(filename):
     headers = next(reader)[1:]
 
     # Convert each row to a list of classes the student is taking
-    student_classes = []
+    students = dict()
     for row in reader:
+        name = row[0]
         classes = [headers[i] for i, val in enumerate(row[1:]) if val == "True"]
-        student_classes.append(classes)
+        students[name] = classes
 
-    return student_classes
+    return students
+
+def csv_to_classes_dict(filename):
+
+    with open(filename, "r") as f:
+        csv_data = f.read()
+
+    rows = csv_data.strip().splitlines()
+    reader = csv.reader(rows)
+
+    # Extract headers (class names)
+    headers = next(reader)[1:]
+
+    # Initialize a dictionary with each class name as a key and an empty list as the value
+    classes_dict = {class_name: [] for class_name in headers}
+
+    # 4. Iterate through each row (student) in the CSV
+    for row in reader:
+        student_name = row[0]
+        classes = [headers[i] for i, val in enumerate(row[1:]) if val == "True"]
+        for student_class in classes:
+            classes_dict[student_class].append(student_name)
+
+    return classes_dict
 
 if __name__ == "__main__":
     # Generate students and export to CSV
