@@ -1,9 +1,10 @@
 from graph import Graph
 from data_gen import csv_to_classes_dict, csv_to_student_dict
+from itertools import chain
 
 DEBUG_MODE = False
 
-def first_fit_adaptive(student_classes):
+def first_fit_adaptive(student_classes, initNode):
     """
     Applies first-fit-coloring to a group of students to identify the schedules for each student.
 
@@ -14,7 +15,6 @@ def first_fit_adaptive(student_classes):
     graph = Graph()
 
     max_periods = len(student_classes[0])
-    print(f"Max num of periods: {max_periods}")
 
     for student in student_classes:
         for i in range(len(student)):
@@ -23,8 +23,15 @@ def first_fit_adaptive(student_classes):
 
     coloring = dict([(className, -1) for className in graph.nodeSet])
 
-    def first_fit_coloring():
+    def first_fit_coloring(initNode):
         iterNodeSet = list(graph.nodeSet)
+        if initNode:
+            try:
+                iterNodeSet.remove(initNode)
+                iterNodeSet.insert(0, initNode)
+            except:
+                print(initNode in list(graph.nodeSet))
+                print(initNode)
         dupsCreated = False
         for node in iterNodeSet:
             if coloring[node] != -1:
@@ -88,21 +95,23 @@ def first_fit_adaptive(student_classes):
                 coloring[duplicate] = -1
                 dupsCreated = True
             if (DEBUG_MODE):
+                # input()
                 Graph.visualize(graph, coloring)
 
         if dupsCreated:
             if (DEBUG_MODE):
                 print("Recurse Recurse")
-            first_fit_coloring()
+            first_fit_coloring(False)
 
-    first_fit_coloring()
+    first_fit_coloring(initNode)
 
     return graph, coloring
 
 from time import sleep
 def reorder_student_list(student_classes, coloring):
+    new_student_classes = []
     for class_list in student_classes:
-        print(class_list)
+        # print(class_list)
         copy = class_list.copy()
         class_list = ["" for _ in class_list]
         for colored_class, color in coloring.items():
@@ -114,26 +123,59 @@ def reorder_student_list(student_classes, coloring):
                     # sleep(5)
                 class_list[color] = colored_class
             
-        print(class_list)
-        # sleep(2)
-        print("\n\n")
+        new_student_classes.append(class_list)
+
+    return new_student_classes
 
 if __name__ == "__main__":
-    student_dict = csv_to_student_dict("Generated\\testSmall2.csv")
+    student_dict = csv_to_student_dict("Generated\\testBig.csv")
 
-    print(student_dict)
+    # print(student_dict)
     
     student_classes = list(student_dict.values())
+    all_classes = list(set(sum(student_classes, [])))
 
-    graph, coloring = first_fit_adaptive(student_classes)
+    print(f"Finding a working schedule across {len(all_classes)} for {len(student_classes)} students with {len(student_classes[0])} periods each!")
+
+    bestGraph = None
+    bestColoring = None
+    workingInitNode = None
+
+    for initNode in all_classes:
+        try:
+            graph, coloring = first_fit_adaptive(student_classes, initNode)
+            if not workingInitNode or len(coloring) < len(bestColoring):
+                workingInitNode = initNode
+                bestGraph = graph
+                bestColoring = coloring
+            print(f"Worked with initial node, {initNode}, creating {len(coloring)} distinct class-period options")
+        except RecursionError:
+            print(f"Did not work with initial node, {initNode}")
+            graph = None
+            coloring = None
+
+    if not workingInitNode:
+        print("No suitable start node found with current logic!")
+        exit()
 
     print("\n\n")
 
-    print(coloring)
+    print("Found a working solution stemming from initial node: ", workingInitNode)
+    print("Total number of created period slots:", len(bestColoring))
+    # print(coloring)
     # print(graph.adjLst)
 
     print("\n\n")
 
-    reorder_student_list(student_classes, coloring)
-    
-    Graph.visualize(graph, coloring)
+    all_class_periods = list(set(sum(student_classes, [])))
+
+    ordered_schedules = reorder_student_list(student_classes, bestColoring)
+    students_per_class = dict([(x, 0) for x in all_class_periods])
+
+    for schedule in ordered_schedules:
+        for period in schedule:
+            students_per_class[period] += 1
+
+    print(students_per_class.values())
+
+    # Graph.visualize(graph, coloring)
