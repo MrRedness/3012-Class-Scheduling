@@ -1,8 +1,23 @@
 from graph import Graph
-from data_gen import csv_to_classes_dict, csv_to_student_dict
-from itertools import chain
+from data_gen import csv_to_student_dict
+from copy import deepcopy
 
 DEBUG_MODE = False
+
+def _generate_dup_list(input_string):
+    # Split the string by '_dup'
+    parts = input_string.split('_dup')
+    
+    # Initialize the result list with the first part
+    result = [parts[0]]
+    
+    # Reconstruct the parts incrementally
+    current = parts[0]
+    for i in range(1, len(parts) - 1):
+        current += '_dup'
+        result.append(current)
+    
+    return result
 
 def first_fit_adaptive(student_classes, initNode):
     """
@@ -51,7 +66,7 @@ def first_fit_adaptive(student_classes, initNode):
             # to the duplicate colors, but instead assigns a combination of the best
             # color for the job that also happens to be the fewest already alloted?
             lowestColor = 0
-            secondLowest = 0
+            secondLowest = 1
             for key, val in frequencyMap.items():
                 if key == -1:
                     continue
@@ -78,25 +93,38 @@ def first_fit_adaptive(student_classes, initNode):
                     print(f"Creating dupe for {node}")
                 duplicate = node + "_dup"
 
-                for neighbor in graph.get_neighbors(node):
-                    if coloring[neighbor] == lowestColor:
-                        graph.remove_edge(node, neighbor)
-                        graph.add_edge(duplicate, neighbor)
+                all_dups_so_far = _generate_dup_list(duplicate)
 
-                        for class_list in student_classes:
-                            if (class_list.count(node) > 0 and class_list.count(neighbor) > 0):
-                                class_list.remove(node)
-                                for student_class in class_list:
-                                    graph.add_edge(duplicate, student_class)
-                                class_list.append(duplicate)
+                if len(all_dups_so_far) >= len(student_classes[0]):
+                    return None, None, []
 
-                        # TODO do we need to add more connective edges here than just the lowest color?
+                for old_dup in all_dups_so_far:
 
+                    for neighbor in graph.get_neighbors(old_dup):
+                        if coloring[neighbor] == coloring[old_dup]:
+                            if DEBUG_MODE:
+                                print(f"ATTACHING DUP OF {old_dup} TO {neighbor}")
+                            graph.remove_edge(old_dup, neighbor)
+                            graph.add_edge(duplicate, neighbor)
+
+                            # TODO LIST FIGURING THIS OUT!!!
+                            for class_list in student_classes:
+                                if (class_list.count(old_dup) > 0 and class_list.count(neighbor) > 0):
+                                    if DEBUG_MODE:
+                                        print(class_list)
+                                    class_list.remove(old_dup)
+                                    for student_class in class_list:
+                                        graph.add_edge(duplicate, student_class)
+                                    class_list.append(duplicate)
+                                    if DEBUG_MODE:
+                                        print(class_list)
                 coloring[duplicate] = -1
                 dupsCreated = True
             if (DEBUG_MODE):
-                # input()
-                Graph.visualize(graph, coloring)
+                pass
+                # vis = input()
+                # if vis:
+                #     Graph.visualize(graph, coloring)
 
         if dupsCreated:
             if (DEBUG_MODE):
@@ -105,7 +133,7 @@ def first_fit_adaptive(student_classes, initNode):
 
     first_fit_coloring(initNode)
 
-    return graph, coloring
+    return graph, coloring, student_classes
 
 from time import sleep
 def reorder_student_list(student_classes, coloring):
@@ -119,7 +147,9 @@ def reorder_student_list(student_classes, coloring):
             if copy.count(colored_class) > 0:
                 # print("Found in copy")
                 if (class_list[color] != ""):
-                    print(f"ERROR! Class {colored_class} has color {color} but class_list already has that color used by {class_list[color]}")
+                    # pass
+                    if DEBUG_MODE:
+                        print(f"ERROR! Class {colored_class} has color {color} but class_list already has that color used by {class_list[color]}")
                     # sleep(5)
                 class_list[color] = colored_class
             
@@ -128,29 +158,54 @@ def reorder_student_list(student_classes, coloring):
     return new_student_classes
 
 if __name__ == "__main__":
-    student_dict = csv_to_student_dict("Generated\\testBig.csv")
+    student_dict = csv_to_student_dict("Generated\\testSmall0.csv")
 
     # print(student_dict)
     
     student_classes = list(student_dict.values())
     all_classes = list(set(sum(student_classes, [])))
 
-    print(f"Finding a working schedule across {len(all_classes)} for {len(student_classes)} students with {len(student_classes[0])} periods each!")
+    print(f"Finding a working schedule across {len(all_classes)} courses for {len(student_classes)} students with {len(student_classes[0])} periods each!")
 
     bestGraph = None
     bestColoring = None
     workingInitNode = None
+    bestSchedules = None
+    bestSPC = None
 
     for initNode in all_classes:
         try:
-            graph, coloring = first_fit_adaptive(student_classes, initNode)
-            if not workingInitNode or len(coloring) < len(bestColoring):
+            graph, coloring, dup_studentClasses = first_fit_adaptive(deepcopy(student_classes), initNode)
+
+            if not graph:
+                raise RecursionError("CONFLICTING CONSTRAINTS IN GREEDY ALGORITHM!")
+
+            all_class_periods = list(set(sum(dup_studentClasses, [])))
+
+            ordered_schedules = reorder_student_list(dup_studentClasses, coloring)
+            students_per_class = dict([(x, 0) for x in all_class_periods])
+
+            if DEBUG_MODE:
+                Graph.visualize(graph, coloring)
+
+            for schedule in ordered_schedules:
+                # print(schedule)
+                for period in schedule:
+                    students_per_class[period] += 1
+
+            if not workingInitNode or (len(coloring) < len(bestColoring)):
                 workingInitNode = initNode
                 bestGraph = graph
                 bestColoring = coloring
+                bestSchedules = ordered_schedules
+                bestSPC = students_per_class
             print(f"Worked with initial node, {initNode}, creating {len(coloring)} distinct class-period options")
         except RecursionError:
-            print(f"Did not work with initial node, {initNode}")
+            print(f"RECURSION: Did not work with initial node, {initNode}")
+            graph = None
+            coloring = None
+        except KeyError:
+            print(f"MISASSIGNMENT: Did not work with initial node, {initNode}")
             graph = None
             coloring = None
 
@@ -158,24 +213,15 @@ if __name__ == "__main__":
         print("No suitable start node found with current logic!")
         exit()
 
-    print("\n\n")
+    print("-" * 30)
 
     print("Found a working solution stemming from initial node: ", workingInitNode)
     print("Total number of created period slots:", len(bestColoring))
     # print(coloring)
     # print(graph.adjLst)
 
-    print("\n\n")
+    print("")
 
-    all_class_periods = list(set(sum(student_classes, [])))
+    print(bestSPC.values())
 
-    ordered_schedules = reorder_student_list(student_classes, bestColoring)
-    students_per_class = dict([(x, 0) for x in all_class_periods])
-
-    for schedule in ordered_schedules:
-        for period in schedule:
-            students_per_class[period] += 1
-
-    print(students_per_class.values())
-
-    # Graph.visualize(graph, coloring)
+    Graph.visualize(bestGraph, bestColoring)

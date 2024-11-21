@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 import networkx as nx
+from ordered_set import OrderedSet
 
 class Graph:
 
     def __init__(self):
         self.adjLst = dict()
-        self.nodeSet = set()
+        self.nodeSet = OrderedSet([])
 
     def add_node(self, node):
         if node not in self.nodeSet:
