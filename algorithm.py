@@ -160,8 +160,9 @@ def reorder_student_list(student_classes, coloring):
 if __name__ == "__main__":
     student_dict = csv_to_student_dict("Generated\\testSmall0.csv")
 
-    # print(student_dict)
-    
+    # import pandas as pd
+    # print(pd.DataFrame.from_dict(student_dict).to_csv("test.csv"))
+    # exit()
     student_classes = list(student_dict.values())
     all_classes = list(set(sum(student_classes, [])))
 
