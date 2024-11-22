@@ -76,7 +76,10 @@ def first_fit_adaptive(student_classes, initNode):
             if frequencyMap[lowestColor] > 0:
                 if (DEBUG_MODE):
                     print(f"Creating dupe for {node}")
-                duplicate = node + "_dup"
+
+            index = node.rfind('_')
+            new_num = int(node[(index + 1):]) + 1
+            duplicate = node[:index] + "_" + str(new_num)
 
                 for neighbor in graph.get_neighbors(node):
                     if coloring[neighbor] == lowestColor:
@@ -127,12 +130,18 @@ def reorder_student_list(student_classes, coloring):
 
     return new_student_classes
 
+def add_suffix_to_classes(student_classes):
+    for student in student_classes:
+        for i in range(len(student)):
+            student[i] += "_1"
+
 if __name__ == "__main__":
     student_dict = csv_to_student_dict("Generated\\testBig.csv")
 
     # print(student_dict)
     
     student_classes = list(student_dict.values())
+    add_suffix_to_classes(student_classes)
     all_classes = list(set(sum(student_classes, [])))
 
     print(f"Finding a working schedule across {len(all_classes)} for {len(student_classes)} students with {len(student_classes[0])} periods each!")
