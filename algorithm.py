@@ -4,18 +4,13 @@ from copy import deepcopy
 
 DEBUG_MODE = False
 
-def _generate_dup_list(input_string):
-    # Split the string by '_dup'
-    parts = input_string.split('_dup')
-    
-    # Initialize the result list with the first part
-    result = [parts[0]]
+def _generate_dup_list(iteration, name_prefix):
+    # Initialize the result list
+    result = []
     
     # Reconstruct the parts incrementally
-    current = parts[0]
-    for i in range(1, len(parts) - 1):
-        current += '_dup'
-        result.append(current)
+    for i in range(1, iteration):
+        result.append(name_prefix + '_' + str(i))
     
     return result
 
@@ -92,11 +87,12 @@ def first_fit_adaptive(student_classes, initNode):
                 if (DEBUG_MODE):
                     print(f"Creating dupe for {node}")
 
-            index = node.rfind('_')
-            new_num = int(node[(index + 1):]) + 1
-            duplicate = node[:index] + "_" + str(new_num)
+                index = node.rfind('_')
+                new_num = int(node[(index + 1):]) + 1
+                prefix = node[:index]
+                duplicate = node[:index] + "_" + str(new_num)
 
-                all_dups_so_far = _generate_dup_list(duplicate)
+                all_dups_so_far = _generate_dup_list(new_num, prefix)
 
                 if len(all_dups_so_far) >= len(student_classes[0]):
                     return None, None, []
@@ -121,8 +117,8 @@ def first_fit_adaptive(student_classes, initNode):
                                     class_list.append(duplicate)
                                     if DEBUG_MODE:
                                         print(class_list)
-                coloring[duplicate] = -1
-                dupsCreated = True
+                    coloring[duplicate] = -1
+                    dupsCreated = True
             if (DEBUG_MODE):
                 pass
                 # vis = input()
