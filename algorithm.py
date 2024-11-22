@@ -91,7 +91,10 @@ def first_fit_adaptive(student_classes, initNode):
             if frequencyMap[lowestColor] > 0:
                 if (DEBUG_MODE):
                     print(f"Creating dupe for {node}")
-                duplicate = node + "_dup"
+
+            index = node.rfind('_')
+            new_num = int(node[(index + 1):]) + 1
+            duplicate = node[:index] + "_" + str(new_num)
 
                 all_dups_so_far = _generate_dup_list(duplicate)
 
@@ -157,6 +160,11 @@ def reorder_student_list(student_classes, coloring):
 
     return new_student_classes
 
+def add_suffix_to_classes(student_classes):
+    for student in student_classes:
+        for i in range(len(student)):
+            student[i] += "_1"
+
 if __name__ == "__main__":
     student_dict = csv_to_student_dict("Generated\\testSmall0.csv")
 
@@ -164,6 +172,7 @@ if __name__ == "__main__":
     # print(pd.DataFrame.from_dict(student_dict).to_csv("test.csv"))
     # exit()
     student_classes = list(student_dict.values())
+    add_suffix_to_classes(student_classes)
     all_classes = list(set(sum(student_classes, [])))
 
     print(f"Finding a working schedule across {len(all_classes)} courses for {len(student_classes)} students with {len(student_classes[0])} periods each!")
